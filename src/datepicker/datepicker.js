@@ -3,15 +3,21 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
 .value('$datepickerSuppressError', false)
 
 .constant('uibDatepickerConfig', {
+  formatHour: 'HH:mm',
   formatDay: 'dd',
   formatMonth: 'MMMM',
   formatYear: 'yyyy',
   formatDayHeader: 'EEE',
+  formatMinuTitle: 'yyyy-MM-dd',
+  formatHourTitle: 'yyyy-MM-dd',
   formatDayTitle: 'MMMM yyyy',
   formatMonthTitle: 'yyyy',
-  datepickerMode: 'day',
-  minMode: 'day',
+  datepickerMode: 'hour',
+  minMode: 'minu',
   maxMode: 'year',
+  amText:'AM',
+  pmText:'PM',
+  showMeridian:true,
   showWeeks: true,
   startingDay: 0,
   yearRange: 20,
@@ -25,11 +31,11 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
       ngModelCtrl = { $setViewValue: angular.noop }; // nullModelCtrl;
 
   // Modes chain
-  this.modes = ['day', 'month', 'year'];
+  this.modes = ['minu','hour','day', 'month', 'year'];
 
   // Configuration attributes
-  angular.forEach(['formatDay', 'formatMonth', 'formatYear', 'formatDayHeader', 'formatDayTitle', 'formatMonthTitle',
-                   'showWeeks', 'startingDay', 'yearRange', 'shortcutPropagation'], function(key, index) {
+  angular.forEach(['formatHour','formatDay','formatMonth', 'formatYear', 'formatDayHeader','formatMinuTitle', 'formatHourTitle', 'formatDayTitle', 'formatMonthTitle',
+                   'amText','pmText','showMeridian','showWeeks', 'startingDay', 'yearRange', 'shortcutPropagation'], function(key, index) {
     self[key] = angular.isDefined($attrs[key]) ? (index < 6 ? $interpolate($attrs[key])($scope.$parent) : $scope.$parent.$eval($attrs[key])) : datepickerConfig[key];
   });
 
@@ -158,6 +164,7 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
     if ($scope.datepickerMode === self.minMode) {
       var dt = ngModelCtrl.$viewValue ? new Date(ngModelCtrl.$viewValue) : new Date(0, 0, 0, 0, 0, 0, 0);
       dt.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+      dt.setHours(date.getHours(),date.getMinutes());
       ngModelCtrl.$setViewValue(dt);
       ngModelCtrl.$render();
     } else {
@@ -168,8 +175,11 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
 
   $scope.move = function(direction) {
     var year = self.activeDate.getFullYear() + direction * (self.step.years || 0),
-        month = self.activeDate.getMonth() + direction * (self.step.months || 0);
-    self.activeDate.setFullYear(year, month, 1);
+        month = self.activeDate.getMonth() + direction * (self.step.months || 0),
+        day = self.activeDate.getDate() + direction * (self.step.days || 0),
+        hour = self.activeDate.getHours() + direction * (self.step.hours || 0);
+    self.activeDate.setFullYear(year, month,day);
+    self.activeDate.setHours(hour);
     self.refreshView();
   };
 
@@ -217,6 +227,85 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
       self.refreshView();
     }
   };
+}])
+
+
+.controller('UibMinupickerController', ['$scope', '$element', 'dateFilter', function(scope, $element, dateFilter) {
+    this.step = {
+        hours: 1
+    };
+    this.element = $element;
+
+    this.init = function(ctrl) {
+        angular.extend(ctrl, this);
+        ctrl.refreshView();
+    };
+
+    this._refreshView = function() {
+        var minus = new Array(12),
+            year = this.activeDate.getFullYear(),
+            month = this.activeDate.getMonth(),
+            day = this.activeDate.getDate(),
+            hour = this.activeDate.getHours(),
+            date;
+
+        for (var i = 0; i < 12; i++) {
+            date = new Date(year, month, day, hour, i * 5);
+            minus[i] = angular.extend(this.createDateObject(date, this.formatHour), {
+                uid: scope.uniqueId + '-' + i
+            });
+        }
+
+        scope.title = dateFilter(this.activeDate, this.formatMinuTitle);
+        scope.rows = this.split(minus, 4);
+    };
+
+    this.compare = function(date1, date2) {
+        return (new Date(date1.getFullYear(), date1.getMonth(), date1.getDate(), date1.getHours(), date1.getMinutes()) - new Date(date2.getFullYear(), date2.getMonth(), date2.getDate(), date2.getHours(), date2.getMinutes()));
+    };
+}])
+
+.controller('UibHourpickerController', ['$scope', '$element', 'dateFilter', function(scope, $element, dateFilter) {
+    this.step = {
+        days: 1
+    };
+    this.element = $element;
+
+    this.init = function(ctrl) {
+        angular.extend(ctrl, this);
+        scope.showMeridian=ctrl.showMeridian;
+        scope.amText=ctrl.amText;
+        scope.pmText=ctrl.pmText;
+        ctrl.refreshView();
+    };
+
+    this._refreshView = function() {
+        var amhours = new Array(12),
+            pmhours = new Array(12),
+            year = this.activeDate.getFullYear(),
+            month = this.activeDate.getMonth(),
+            day = this.activeDate.getDate(),
+            date;
+
+        for (var i = 0; i < 12; i++) {
+            date = new Date(year, month, day, i);
+            amhours[i] = angular.extend(this.createDateObject(date, this.formatHour), {
+                uid: scope.uniqueId + '-' + i
+            });
+            date = new Date(year, month, day, i+12);
+            pmhours[i] = angular.extend(this.createDateObject(date, this.formatHour), {
+                uid: scope.uniqueId + '-' + (i+12)
+            });
+        }
+
+        scope.title = dateFilter(this.activeDate, this.formatHourTitle);
+        scope.amrows = this.split(amhours, 6);
+        scope.pmrows = this.split(pmhours, 6);
+    };
+
+    this.compare = function(date1, date2) {
+        return (new Date(date1.getFullYear(), date1.getMonth(), date1.getDate(), date1.getHours()) - new Date(date2.getFullYear(), date2.getMonth(), date2.getDate(), date2.getHours()));
+    };
 }])
 
 .controller('UibDaypickerController', ['$scope', '$element', 'dateFilter', function(scope, $element, dateFilter) {
@@ -451,6 +540,39 @@ angular.module('ui.bootstrap.datepicker', ['ui.bootstrap.dateparser', 'ui.bootst
       var datepickerCtrl = ctrls[0], ngModelCtrl = ctrls[1];
 
       datepickerCtrl.init(ngModelCtrl);
+    }
+  };
+})
+
+.directive('uibMinupicker', function() {
+  return {
+    replace: true,
+    templateUrl: function(element, attrs) {
+      return attrs.templateUrl || 'template/datepicker/minu.html';
+    },
+    require: ['^?uibDatepicker', 'uibMinupicker', '^?datepicker'],
+    controller: 'UibMinupickerController',
+    link: function(scope, element, attrs, ctrls) {
+      var datepickerCtrl = ctrls[0] || ctrls[2],
+        minupickerCtrl = ctrls[1];
+
+      minupickerCtrl.init(datepickerCtrl);
+    }
+  };
+})
+.directive('uibHourpicker', function() {
+  return {
+    replace: true,
+    templateUrl: function(element, attrs) {
+      return attrs.templateUrl || 'template/datepicker/hour.html';
+    },
+    require: ['^?uibDatepicker', 'uibHourpicker', '^?datepicker'],
+    controller: 'UibHourpickerController',
+    link: function(scope, element, attrs, ctrls) {
+      var datepickerCtrl = ctrls[0] || ctrls[2],
+        hourpickerCtrl = ctrls[1];
+
+      hourpickerCtrl.init(datepickerCtrl);
     }
   };
 })

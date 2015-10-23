@@ -14,8 +14,8 @@ All settings can be provided as attributes in the `uib-datepicker` or globally c
  	The date object.
 
  * `datepicker-mode` <i class="glyphicon glyphicon-eye-open"></i>
-   _(Defaults: 'day')_ :
-   Current mode of the datepicker _(day|month|year)_. Can be used to initialize datepicker to specific mode.
+   _(Defaults: 'hour')_ :
+   Current mode of the datepicker _(minu|hour|day|month|year)_. Can be used to initialize datepicker to specific mode.
 
  * `min-date` <i class="glyphicon glyphicon-eye-open"></i>
  	_(Default: null)_ :
@@ -27,12 +27,15 @@ All settings can be provided as attributes in the `uib-datepicker` or globally c
 
  * `date-disabled (date, mode)`
  	_(Default: null)_ :
- 	An optional expression to disable visible options based on passing date and current mode _(day|month|year)_.
+ 	An optional expression to disable visible options based on passing date and current mode _(minu|hour|day|month|year)_.
  	
  * `custom-class (date, mode)`
  	_(Default: null)_ :
- 	An optional expression to add classes based on passing date and current mode _(day|month|year)_. 	
+ 	An optional expression to add classes based on passing date and current mode _(minu|hour|day|month|year)_. 	
 
+ * `show-meridian`
+ 	Whether to display am and pm.
+ 
  * `show-weeks`
  	_(Defaults: true)_ :
  	Whether to display week numbers.
@@ -46,12 +49,16 @@ All settings can be provided as attributes in the `uib-datepicker` or globally c
  	The initial date view when no model value is specified.
 
  * `min-mode`
-   _(Defaults: 'day')_ :
+   _(Defaults: 'minu')_ :
    Set a lower limit for mode.
 
  * `max-mode`
    _(Defaults: 'year')_ :
    Set an upper limit for mode.
+   
+ * `format-hour`
+ 	_(Default: 'H:mm')_ :
+    Format of Hour in day
 
  * `format-day`
  	_(Default: 'dd')_ :
@@ -68,6 +75,14 @@ All settings can be provided as attributes in the `uib-datepicker` or globally c
  * `format-day-header`
  	_(Default: 'EEE')_ :
  	Format of day in week header.
+ 	
+ * `format-minu-title`
+ 	_(Default: 'MMMM yyyy')_ :
+ 	Format of title when selecting minutes.
+ 	
+ * `format-hour-title`
+ 	_(Default: 'MMMM yyyy')_ :
+ 	Format of title when selecting hour.
 
  * `format-day-title`
  	_(Default: 'MMMM yyyy')_ :
@@ -77,6 +92,14 @@ All settings can be provided as attributes in the `uib-datepicker` or globally c
  	_(Default: 'yyyy')_ :
  	Format of title when selecting month.
 
+ * `am－text`
+ 	_(Default: 'AM')_ :
+ 	The text of a.m. when `show-meridian` is  true.
+
+ * `pm－text`
+ 	_(Default: 'PM')_ :
+ 	The text of p.m. when `show-meridian` is  true.
+ 	
  * `year-range`
  	_(Default: 20)_ :
  	Number of years displayed in year selection. 
