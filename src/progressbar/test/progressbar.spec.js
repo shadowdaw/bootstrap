@@ -1,49 +1,4 @@
 describe('progressbar directive', function() {
-  describe('$progressSuppressWarning', function() {
-    beforeEach(module('ui.bootstrap.progressbar'));
-    beforeEach(module('template/progressbar/progress.html', 'template/progressbar/bar.html'));
-
-    it('should suppress warning', function() {
-      module(function($provide) {
-        $provide.value('$progressSuppressWarning', true);
-      });
-
-      inject(function($compile, $log, $rootScope) {
-        spyOn($log, 'warn');
-
-        $rootScope.objects = [
-          { value: 10, type: 'success' },
-          { value: 50, type: 'warning' },
-          { value: 20 }
-        ];
-        var element = $compile('<progress animate="false"><bar ng-repeat="o in objects" value="o.value" type="{{o.type}}">{{o.value}}</bar></progress>')($rootScope);
-        $rootScope.$digest();
-
-        expect($log.warn.calls.count()).toBe(0);
-      });
-    });
-
-    it('should give warning by default', inject(function($compile, $log, $rootScope) {
-      spyOn($log, 'warn');
-
-      $rootScope.objects = [
-        { value: 10, type: 'success' },
-        { value: 50, type: 'warning' },
-        { value: 20 }
-      ];
-      var element = $compile('<progress animate="false"><bar ng-repeat="o in objects" value="o.value" type="{{o.type}}">{{o.value}}</bar></progress>')($rootScope);
-      $rootScope.$digest();
-
-      expect($log.warn.calls.count()).toBe(4);
-      expect($log.warn.calls.argsFor(0)).toEqual(['progress is now deprecated. Use uib-progress instead']);
-      expect($log.warn.calls.argsFor(1)).toEqual(['bar is now deprecated. Use uib-bar instead']);
-      expect($log.warn.calls.argsFor(2)).toEqual(['bar is now deprecated. Use uib-bar instead']);
-      expect($log.warn.calls.argsFor(3)).toEqual(['bar is now deprecated. Use uib-bar instead']);
-    }));
-  });
-});
-
-describe('progressbar directive', function() {
   var $rootScope, $compile, element;
   beforeEach(module('ui.bootstrap.progressbar'));
   beforeEach(module('template/progressbar/progressbar.html', 'template/progressbar/progress.html', 'template/progressbar/bar.html'));
@@ -51,7 +6,7 @@ describe('progressbar directive', function() {
     $compile = _$compile_;
     $rootScope = _$rootScope_;
     $rootScope.value = 22;
-    element = $compile('<progressbar animate="false" value="value" title="foo">{{value}} %</progressbar>')($rootScope);
+    element = $compile('<uib-progressbar animate="false" value="value" title="foo">{{value}} %</uib-progressbar>')($rootScope);
     $rootScope.$digest();
   }));
 
@@ -85,7 +40,7 @@ describe('progressbar directive', function() {
   });
 
   it('has the default aria-labelledby value of `progressbar`', function() {
-    element = $compile('<progressbar animate="false" value="value">{{value}} %</progressbar>')($rootScope);
+    element = $compile('<uib-progressbar animate="false" value="value">{{value}} %</uib-progressbar>')($rootScope);
     $rootScope.$digest();
     var bar = getBar(0);
     expect(bar.attr('aria-labelledby')).toBe('progressbar');
@@ -140,7 +95,7 @@ describe('progressbar directive', function() {
   describe('"max" attribute', function() {
     beforeEach(inject(function() {
       $rootScope.max = 200;
-      element = $compile('<progressbar max="max" animate="false" value="value">{{value}}/{{max}}</progressbar>')($rootScope);
+      element = $compile('<uib-progressbar max="max" animate="false" value="value">{{value}}/{{max}}</uib-progressbar>')($rootScope);
       $rootScope.$digest();
     }));
 
@@ -181,7 +136,7 @@ describe('progressbar directive', function() {
   describe('"type" attribute', function() {
     beforeEach(inject(function() {
       $rootScope.type = 'success';
-      element = $compile('<progressbar value="value" type="{{type}}"></progressbar>')($rootScope);
+      element = $compile('<uib-progressbar value="value" type="{{type}}"></uib-progressbar>')($rootScope);
       $rootScope.$digest();
     }));
 
@@ -360,6 +315,107 @@ describe('progressbar directive', function() {
         }
         expect(totalWidth.toFixed(2)).toBe('100.00');
       });
+
+      it('should not have a total width over 37.65% when removing bar', function() {
+        $rootScope.objects = [
+          { value: 60, type: 'warning' },
+          { value: 103 },
+          { value: 270, type: 'info' }
+        ];
+        $rootScope.max = 433;
+        $rootScope.$digest();
+        var totalWidth = 0;
+        for (var i = 0; i < 3; i++) {
+          totalWidth += parseFloat(getBar(i).css('width'));
+        }
+        expect(totalWidth.toFixed(2)).toBe('100.00');
+
+        $rootScope.objects.splice(2, 1);
+        $rootScope.$digest();
+        totalWidth = 0;
+        for (i = 0; i < 2; i++) {
+          totalWidth += parseFloat(getBar(i).css('width'));
+        }
+        expect(totalWidth.toFixed(2)).toBe('37.65');
+      });
     });
+  });
+});
+
+/* Deprecation tests below */
+
+describe('progressbar deprecation', function() {
+  beforeEach(module('ui.bootstrap.progressbar'));
+  beforeEach(module('template/progressbar/progress.html', 'template/progressbar/bar.html', 'template/progressbar/progressbar.html'));
+
+  describe('progress & bar directives', function() {
+    it('should suppress warning', function() {
+      module(function($provide) {
+        $provide.value('$progressSuppressWarning', true);
+      });
+
+      inject(function($compile, $log, $rootScope) {
+        spyOn($log, 'warn');
+
+        $rootScope.objects = [
+          { value: 10, type: 'success' },
+          { value: 50, type: 'warning' },
+          { value: 20 }
+        ];
+        var element = $compile('<progress animate="false"><bar ng-repeat="o in objects" value="o.value" type="{{o.type}}">{{o.value}}</bar></progress>')($rootScope);
+        $rootScope.$digest();
+
+        expect($log.warn.calls.count()).toBe(0);
+      });
+    });
+
+    it('should give warning by default', inject(function($compile, $log, $rootScope) {
+      spyOn($log, 'warn');
+
+      $rootScope.objects = [
+        { value: 10, type: 'success' },
+        { value: 50, type: 'warning' },
+        { value: 20 }
+      ];
+      var element = $compile('<progress animate="false"><bar ng-repeat="o in objects" value="o.value" type="{{o.type}}">{{o.value}}</bar></progress>')($rootScope);
+      $rootScope.$digest();
+
+      expect($log.warn.calls.count()).toBe(5);
+      expect($log.warn.calls.argsFor(0)).toEqual(['ProgressController is now deprecated. Use UibProgressController instead.']);
+      expect($log.warn.calls.argsFor(1)).toEqual(['progress is now deprecated. Use uib-progress instead.']);
+      expect($log.warn.calls.argsFor(2)).toEqual(['bar is now deprecated. Use uib-bar instead.']);
+      expect($log.warn.calls.argsFor(3)).toEqual(['bar is now deprecated. Use uib-bar instead.']);
+      expect($log.warn.calls.argsFor(4)).toEqual(['bar is now deprecated. Use uib-bar instead.']);
+    }));
+  });
+
+  describe('progressbar directive', function() {
+    it('should suppress warning', function() {
+      module(function($provide) {
+        $provide.value('$progressSuppressWarning', true);
+      });
+
+      inject(function($compile, $log, $rootScope) {
+        spyOn($log, 'warn');
+
+        $rootScope.value = 22;
+        var element = $compile('<progressbar animate="false" value="value" title="foo">{{value}} %</progressbar>')($rootScope);
+        $rootScope.$digest();
+
+        expect($log.warn.calls.count()).toBe(0);
+      });
+    });
+
+    it('should give warning by default', inject(function($compile, $log, $rootScope) {
+      spyOn($log, 'warn');
+
+      $rootScope.value = 22;
+      var element = $compile('<progressbar animate="false" value="value" title="foo">{{value}} %</progressbar>')($rootScope);
+      $rootScope.$digest();
+
+      expect($log.warn.calls.count()).toBe(2);
+      expect($log.warn.calls.argsFor(0)).toEqual(['ProgressController is now deprecated. Use UibProgressController instead.']);
+      expect($log.warn.calls.argsFor(1)).toEqual(['progressbar is now deprecated. Use uib-progressbar instead.']);
+    }));
   });
 });

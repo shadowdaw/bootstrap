@@ -44,7 +44,7 @@ angular.module('ui.bootstrap.buttons', [])
   };
 })
 
-.directive('uibBtnCheckbox', ['$document', function($document) {
+.directive('uibBtnCheckbox', function() {
   return {
     require: ['uibBtnCheckbox', 'ngModel'],
     controller: 'UibButtonsController',
@@ -82,21 +82,9 @@ angular.module('ui.bootstrap.buttons', [])
           ngModelCtrl.$render();
         });
       });
-
-      //accessibility
-      element.on('keypress', function(e) {
-        if (attrs.disabled || e.which !== 32 || $document[0].activeElement !== element[0]) {
-          return;
-        }
-
-        scope.$apply(function() {
-          ngModelCtrl.$setViewValue(element.hasClass(buttonsCtrl.activeClass) ? getFalseValue() : getTrueValue());
-          ngModelCtrl.$render();
-        });
-      });
     }
   };
-}]);
+});
 
 /* Deprecated buttons below */
 
@@ -104,10 +92,18 @@ angular.module('ui.bootstrap.buttons')
 
   .value('$buttonsSuppressWarning', false)
 
+  .controller('ButtonsController', ['$controller', '$log', '$buttonsSuppressWarning', function($controller, $log, $buttonsSuppressWarning) {
+    if (!$buttonsSuppressWarning) {
+      $log.warn('ButtonsController is now deprecated. Use UibButtonsController instead.');
+    }
+
+    angular.extend(this, $controller('UibButtonsController'));
+  }])
+
   .directive('btnRadio', ['$log', '$buttonsSuppressWarning', function($log, $buttonsSuppressWarning) {
     return {
       require: ['btnRadio', 'ngModel'],
-      controller: 'UibButtonsController',
+      controller: 'ButtonsController',
       controllerAs: 'buttons',
       link: function(scope, element, attrs, ctrls) {
         if (!$buttonsSuppressWarning) {
@@ -145,7 +141,7 @@ angular.module('ui.bootstrap.buttons')
   .directive('btnCheckbox', ['$document', '$log', '$buttonsSuppressWarning', function($document, $log, $buttonsSuppressWarning) {
     return {
       require: ['btnCheckbox', 'ngModel'],
-      controller: 'UibButtonsController',
+      controller: 'ButtonsController',
       controllerAs: 'button',
       link: function(scope, element, attrs, ctrls) {
         if (!$buttonsSuppressWarning) {

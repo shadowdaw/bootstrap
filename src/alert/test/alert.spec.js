@@ -136,6 +136,19 @@ describe('uib-alert', function() {
     $timeout.flush();
     expect(scope.removeAlert).toHaveBeenCalled();
   });
+
+  it('should not close immediately with a dynamic dismiss-on-timeout', function() {
+    scope.removeAlert = jasmine.createSpy();
+    scope.dismissTime = 500;
+    $compile('<uib-alert close="removeAlert()" dismiss-on-timeout="{{dismissTime}}">Default alert!</uib-alert>')(scope);
+    scope.$digest();
+
+    $timeout.flush(100);
+    expect(scope.removeAlert).not.toHaveBeenCalled();
+
+    $timeout.flush(500);
+    expect(scope.removeAlert).toHaveBeenCalled();
+  });
 });
 
 /* Deprecation tests below */
@@ -166,7 +179,8 @@ describe('alert deprecation', function() {
     element = $compile(element)($rootScope);
     $rootScope.$digest();
 
-    expect($log.warn.calls.count()).toBe(1);
-    expect($log.warn.calls.argsFor(0)).toEqual(['alert is now deprecated. Use uib-alert instead.']);
+    expect($log.warn.calls.count()).toBe(2);
+    expect($log.warn.calls.argsFor(0)).toEqual(['AlertController is now deprecated. Use UibAlertController instead.']);
+    expect($log.warn.calls.argsFor(1)).toEqual(['alert is now deprecated. Use uib-alert instead.']);
   }));
 });

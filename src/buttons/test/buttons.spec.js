@@ -74,27 +74,6 @@ describe('buttons', function() {
       expect(btn).not.toHaveClass('active');
     });
 
-    it('should toggle custom model values on spacebar if focused', function() {
-      $scope.model = 0;
-      var btn = compileButton('<button ng-model="model" uib-btn-checkbox btn-checkbox-true="1" btn-checkbox-false="0">click</button>', $scope);
-      $('body').append(btn);
-      var e = $.Event('keypress');
-      e.which = 32;
-
-      btn[0].focus();
-      btn.trigger(e);
-      $scope.$digest();
-      expect($scope.model).toEqual(1);
-      expect(btn).toHaveClass('active');
-
-      btn.trigger(e);
-      $scope.$digest();
-      expect($scope.model).toEqual(0);
-      expect(btn).not.toHaveClass('active');
-
-      btn.remove();
-    });
-
     it('should monitor true / false value changes - issue 666', function() {
 
       $scope.model = 1;
@@ -116,7 +95,6 @@ describe('buttons', function() {
       $scope.model = 1;
       $scope.falseVal = 0;
       var btn = compileButton('<button disabled ng-model="model" uib-btn-checkbox btn-checkbox-true="falseVal">click</button>', $scope);
-      $('body').append(btn);
 
       expect(btn).not.toHaveClass('active');
       expect($scope.model).toEqual(1);
@@ -128,36 +106,24 @@ describe('buttons', function() {
       $scope.$digest();
 
       expect(btn).not.toHaveClass('active');
-
-      btn[0].focus();
-      var e = $.Event('keypress');
-      e.which = 32;
-      btn.trigger(e);
-
-      expect(btn).not.toHaveClass('active');
-
-      $scope.$digest();
-
-      expect(btn).not.toHaveClass('active');
-
-      btn.remove();
     });
 
     describe('setting buttonConfig', function() {
-      var originalActiveClass, originalToggleEvent;
+      var uibButtonConfig, originalActiveClass, originalToggleEvent;
 
-      beforeEach(inject(function(uibButtonConfig) {
+      beforeEach(inject(function(_uibButtonConfig_) {
+        uibButtonConfig = _uibButtonConfig_;
         originalActiveClass = uibButtonConfig.activeClass;
         originalToggleEvent = uibButtonConfig.toggleEvent;
         uibButtonConfig.activeClass = false;
         uibButtonConfig.toggleEvent = false;
       }));
 
-      afterEach(inject(function(uibButtonConfig) {
+      afterEach(function() {
         // return it to the original value
         uibButtonConfig.activeClass = originalActiveClass;
         uibButtonConfig.toggleEvent = originalToggleEvent;
-      }));
+      });
 
       it('should use default config when buttonConfig.activeClass and buttonConfig.toggleEvent is false', function() {
         $scope.model = false;
@@ -165,6 +131,29 @@ describe('buttons', function() {
         expect(btn).not.toHaveClass('active');
 
         $scope.model = true;
+        $scope.$digest();
+        expect(btn).toHaveClass('active');
+      });
+
+      it('should be able to use a different active class', function() {
+        uibButtonConfig.activeClass = 'foo';
+        $scope.model = false;
+        var btn = compileButton('<button ng-model="model" uib-btn-checkbox>click</button>', $scope);
+        expect(btn).not.toHaveClass('foo');
+
+        $scope.model = true;
+        $scope.$digest();
+        expect(btn).toHaveClass('foo');
+      });
+
+      it('should be able to use a different toggle event', function() {
+        uibButtonConfig.toggleEvent = 'mouseenter';
+        $scope.model = false;
+        var btn = compileButton('<button ng-model="model" uib-btn-checkbox>click</button>', $scope);
+        expect(btn).not.toHaveClass('active');
+
+        btn.trigger('mouseenter');
+
         $scope.$digest();
         expect(btn).toHaveClass('active');
       });
@@ -192,7 +181,7 @@ describe('buttons', function() {
     }));
 
     //model -> UI
-    it('should work correctly set active class based on model', function() {
+    it('should set active class based on model', function() {
       var btns = compileButtons('<button ng-model="model" uib-btn-radio="1">click1</button><button ng-model="model" uib-btn-radio="2">click2</button>', $scope);
       expect(btns.eq(0)).not.toHaveClass('active');
       expect(btns.eq(1)).not.toHaveClass('active');
@@ -204,7 +193,7 @@ describe('buttons', function() {
     });
 
     //UI->model
-    it('should work correctly set active class based on model', function() {
+    it('should set active class via click', function() {
       var btns = compileButtons('<button ng-model="model" uib-btn-radio="1">click1</button><button ng-model="model" uib-btn-radio="2">click2</button>', $scope);
       expect($scope.model).toBeUndefined();
 
@@ -238,7 +227,7 @@ describe('buttons', function() {
       expect(btns.eq(1)).toHaveClass('active');
     });
 
-    it('should do nothing when click active radio', function() {
+    it('should do nothing when clicking an active radio', function() {
       $scope.model = 1;
       var btns = compileButtons('<button ng-model="model" uib-btn-radio="1">click1</button><button ng-model="model" uib-btn-radio="2">click2</button>', $scope);
       expect(btns.eq(0)).toHaveClass('active');
@@ -301,7 +290,7 @@ describe('buttons', function() {
       });
 
       //UI->model
-      it('should unset active class based on model', function() {
+      it('should unset active class via click', function() {
         var btns = compileButtons('<button ng-model="model" uib-btn-radio="1" uncheckable>click1</button><button ng-model="model" uib-btn-radio="2" uncheckable>click2</button>', $scope);
         expect($scope.model).toBeUndefined();
 
@@ -371,9 +360,12 @@ describe('buttons deprecation', function() {
     element = $compile('<button ng-model="model" btn-radio="1">click1</button><button ng-model="model" btn-radio="2">click2</button>')($rootScope);
     $rootScope.$digest();
 
-    expect($log.warn.calls.count()).toBe(3);
-    expect($log.warn.calls.argsFor(0)).toEqual(['btn-checkbox is now deprecated. Use uib-btn-checkbox instead.']);
-    expect($log.warn.calls.argsFor(1)).toEqual(['btn-radio is now deprecated. Use uib-btn-radio instead.']);
-    expect($log.warn.calls.argsFor(2)).toEqual(['btn-radio is now deprecated. Use uib-btn-radio instead.']);
+    expect($log.warn.calls.count()).toBe(6);
+    expect($log.warn.calls.argsFor(0)).toEqual(['ButtonsController is now deprecated. Use UibButtonsController instead.']);
+    expect($log.warn.calls.argsFor(1)).toEqual(['btn-checkbox is now deprecated. Use uib-btn-checkbox instead.']);
+    expect($log.warn.calls.argsFor(2)).toEqual(['ButtonsController is now deprecated. Use UibButtonsController instead.']);
+    expect($log.warn.calls.argsFor(3)).toEqual(['btn-radio is now deprecated. Use uib-btn-radio instead.']);
+    expect($log.warn.calls.argsFor(4)).toEqual(['ButtonsController is now deprecated. Use UibButtonsController instead.']);
+    expect($log.warn.calls.argsFor(5)).toEqual(['btn-radio is now deprecated. Use uib-btn-radio instead.']);
   }));
 });

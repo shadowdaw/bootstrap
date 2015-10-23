@@ -1,12 +1,15 @@
 angular.module('ui.bootstrap.alert', [])
 
-.controller('UibAlertController', ['$scope', '$attrs', '$timeout', function($scope, $attrs, $timeout) {
+.controller('UibAlertController', ['$scope', '$attrs', '$interpolate', '$timeout', function($scope, $attrs, $interpolate, $timeout) {
   $scope.closeable = !!$attrs.close;
 
-  if (angular.isDefined($attrs.dismissOnTimeout)) {
+  var dismissOnTimeout = angular.isDefined($attrs.dismissOnTimeout) ?
+    $interpolate($attrs.dismissOnTimeout)($scope.$parent) : null;
+
+  if (dismissOnTimeout) {
     $timeout(function() {
       $scope.close();
-    }, parseInt($attrs.dismissOnTimeout, 10));
+    }, parseInt(dismissOnTimeout, 10));
   }
 }])
 
@@ -32,9 +35,20 @@ angular.module('ui.bootstrap.alert')
 
   .value('$alertSuppressWarning', false)
 
+  .controller('AlertController', ['$scope', '$attrs', '$controller', '$log', '$alertSuppressWarning', function($scope, $attrs, $controller, $log, $alertSuppressWarning) {
+    if (!$alertSuppressWarning) {
+      $log.warn('AlertController is now deprecated. Use UibAlertController instead.');
+    }
+
+    angular.extend(this, $controller('UibAlertController', {
+      $scope: $scope,
+      $attrs: $attrs
+    }));
+  }])
+
   .directive('alert', ['$log', '$alertSuppressWarning', function($log, $alertSuppressWarning) {
     return {
-      controller: 'UibAlertController',
+      controller: 'AlertController',
       controllerAs: 'alert',
       templateUrl: function(element, attrs) {
         return attrs.templateUrl || 'template/alert/alert.html';
